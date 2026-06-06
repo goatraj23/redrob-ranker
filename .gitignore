@@ -1,0 +1,34 @@
+# ---------------------------------------------------------------------------
+# NEVER commit the challenge dataset (confidential per the hackathon ToS, and
+# 465 MB uncompressed). Keep it local; the reproduce command points at a path.
+# ---------------------------------------------------------------------------
+candidates.jsonl
+candidates.jsonl.gz
+# All .jsonl stays local: the 465 MB dataset AND any derived label files (which
+# contain real candidate_ids). Regenerate eval labels with tools/make_seed_labels.py.
+*.jsonl
+data/
+*/candidates*.json
+
+# scratch/aside artifacts from the authoring sandbox (never commit)
+_REMOVE_ME_*
+_broken_git_remove_me/
+label/
+weights.json
+
+# Generated outputs
+submission.csv
+team_*.csv
+*.out
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.pytest_cache/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store

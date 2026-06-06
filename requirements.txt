@@ -1,0 +1,12 @@
+# ---------------------------------------------------------------------------
+# The PRODUCTION RANKER (rank.py) has ZERO third-party dependencies — it runs on
+# the Python 3.9+ standard library ONLY. This is deliberate: it guarantees the
+# Stage-3 Docker reproduction completes within the 5 min / 16 GB / CPU /
+# no-network budget with nothing to install and nothing to download.
+#
+# There are therefore no required packages to install to reproduce submission.csv.
+#
+# OPTIONAL tooling (NOT used by rank.py):
+#   - sandbox demo .......... pip install -r sandbox/requirements.txt   (streamlit)
+#   - offline LLM labelling . pip install anthropic   # or: openai
+# ---------------------------------------------------------------------------
