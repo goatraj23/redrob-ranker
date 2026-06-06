@@ -16,7 +16,7 @@ team_members:
 # ============================================================================
 # Code and reproducibility
 # ============================================================================
-github_repo: "https://github.com/TODO-your-username/redrob-ranker"
+github_repo: "https://github.com/goatraj23/redrob-ranker"
 
 sandbox_link: "https://TODO-your-streamlit-or-hf-space-url"
 # A sample-only Streamlit app is included at sandbox/app.py. Deploy it free on
