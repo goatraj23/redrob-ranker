@@ -1,0 +1,201 @@
+[
+  {
+    "candidate_id": "CAND_9000001",
+    "profile": {
+      "anonymized_name": "Synthetic Strong Fit",
+      "headline": "ML Engineer | Search, Ranking, Recommendations",
+      "summary": "Applied ML engineer with 7 years building recommendation and search-ranking systems at product companies. Shipped a learning-to-rank re-ranker and a vector-search retrieval service to real users; owned offline NDCG/MRR evaluation and online A/B tests.",
+      "location": "Pune, Maharashtra", "country": "India",
+      "years_of_experience": 7.0, "current_title": "Machine Learning Engineer",
+      "current_company": "ShopRank (product)", "current_company_size": "201-500",
+      "current_industry": "Internet"
+    },
+    "career_history": [
+      {"company": "ShopRank", "title": "Machine Learning Engineer", "start_date": "2021-06-01",
+       "end_date": null, "duration_months": 48, "is_current": true, "industry": "Internet",
+       "company_size": "201-500",
+       "description": "Built the candidate-generation and learning-to-rank re-ranking pipeline for product search using sentence-transformers embeddings and a FAISS index; ran NDCG/MRR offline evals and online A/B tests."},
+      {"company": "FeedCo", "title": "Data Scientist", "start_date": "2017-07-01",
+       "end_date": "2021-05-01", "duration_months": 46, "is_current": false, "industry": "Internet",
+       "company_size": "51-200",
+       "description": "Developed a recommendation system for the content feed; productionised retrieval and personalization with Python and PyTorch."}
+    ],
+    "education": [{"institution": "IIT Bombay", "degree": "B.Tech", "field_of_study": "Computer Science",
+      "start_year": 2013, "end_year": 2017, "grade": "8.9", "tier": "tier_1"}],
+    "skills": [
+      {"name": "Machine Learning", "proficiency": "expert", "endorsements": 40, "duration_months": 84},
+      {"name": "Information Retrieval", "proficiency": "advanced", "endorsements": 22, "duration_months": 60},
+      {"name": "PyTorch", "proficiency": "advanced", "endorsements": 18, "duration_months": 60}
+    ],
+    "redrob_signals": {
+      "profile_completeness_score": 95, "signup_date": "2022-01-01", "last_active_date": "2026-05-20",
+      "open_to_work_flag": true, "profile_views_received_30d": 40, "applications_submitted_30d": 3,
+      "recruiter_response_rate": 0.82, "avg_response_time_hours": 4, "skill_assessment_scores": {"Machine Learning": 88, "Information Retrieval": 80},
+      "connection_count": 600, "endorsements_received": 80, "notice_period_days": 15,
+      "expected_salary_range_inr_lpa": {"min": 35, "max": 50}, "preferred_work_mode": "hybrid",
+      "willing_to_relocate": true, "github_activity_score": 65, "search_appearance_30d": 50,
+      "saved_by_recruiters_30d": 9, "interview_completion_rate": 0.9, "offer_acceptance_rate": 0.5,
+      "verified_email": true, "verified_phone": true, "linkedin_connected": true}
+  },
+  {
+    "candidate_id": "CAND_9000002",
+    "profile": {
+      "anonymized_name": "Synthetic Keyword Stuffer",
+      "headline": "Marketing Manager | AI enthusiast",
+      "summary": "Marketing manager running campaigns and brand strategy. Passionate about AI.",
+      "location": "Mumbai, Maharashtra", "country": "India",
+      "years_of_experience": 8.0, "current_title": "Marketing Manager",
+      "current_company": "BrandWorks", "current_company_size": "201-500", "current_industry": "Marketing"
+    },
+    "career_history": [
+      {"company": "BrandWorks", "title": "Marketing Manager", "start_date": "2019-01-01",
+       "end_date": null, "duration_months": 89, "is_current": true, "industry": "Marketing",
+       "company_size": "201-500", "description": "Led marketing campaigns, SEO, content calendars and brand partnerships."}
+    ],
+    "education": [{"institution": "Local College", "degree": "MBA", "field_of_study": "Marketing",
+      "start_year": 2013, "end_year": 2015, "grade": "7.0", "tier": "tier_3"}],
+    "skills": [
+      {"name": "Machine Learning", "proficiency": "expert", "endorsements": 1, "duration_months": 0},
+      {"name": "Deep Learning", "proficiency": "expert", "endorsements": 0, "duration_months": 0},
+      {"name": "NLP", "proficiency": "expert", "endorsements": 0, "duration_months": 0},
+      {"name": "LLM", "proficiency": "expert", "endorsements": 0, "duration_months": 0}
+    ],
+    "redrob_signals": {
+      "profile_completeness_score": 70, "signup_date": "2023-01-01", "last_active_date": "2026-04-01",
+      "open_to_work_flag": true, "profile_views_received_30d": 5, "applications_submitted_30d": 1,
+      "recruiter_response_rate": 0.5, "avg_response_time_hours": 20, "skill_assessment_scores": {},
+      "connection_count": 200, "endorsements_received": 5, "notice_period_days": 60,
+      "expected_salary_range_inr_lpa": {"min": 20, "max": 30}, "preferred_work_mode": "onsite",
+      "willing_to_relocate": false, "github_activity_score": -1, "search_appearance_30d": 3,
+      "saved_by_recruiters_30d": 0, "interview_completion_rate": 0.0, "offer_acceptance_rate": -1,
+      "verified_email": true, "verified_phone": false, "linkedin_connected": false}
+  },
+  {
+    "candidate_id": "CAND_9000003",
+    "profile": {
+      "anonymized_name": "Synthetic Honeypot",
+      "headline": "Senior Engineer", "summary": "Senior engineer with deep experience.",
+      "location": "Noida, Uttar Pradesh", "country": "India",
+      "years_of_experience": 8.0, "current_title": "Machine Learning Engineer",
+      "current_company": "NewCo", "current_company_size": "11-50", "current_industry": "Internet"
+    },
+    "career_history": [
+      {"company": "NewCo", "title": "Machine Learning Engineer", "start_date": "2024-01-01",
+       "end_date": null, "duration_months": 96, "is_current": true, "industry": "Internet",
+       "company_size": "11-50", "description": "Built ranking and retrieval systems."}
+    ],
+    "education": [{"institution": "Tier1 University", "degree": "B.Tech", "field_of_study": "CS",
+      "start_year": 2014, "end_year": 2018, "grade": "8.0", "tier": "tier_1"}],
+    "skills": [
+      {"name": "Machine Learning", "proficiency": "expert", "endorsements": 5, "duration_months": 0},
+      {"name": "Ranking", "proficiency": "expert", "endorsements": 3, "duration_months": 0},
+      {"name": "Retrieval", "proficiency": "expert", "endorsements": 2, "duration_months": 0},
+      {"name": "NLP", "proficiency": "advanced", "endorsements": 1, "duration_months": 0}
+    ],
+    "redrob_signals": {
+      "profile_completeness_score": 90, "signup_date": "2024-01-01", "last_active_date": "2026-05-01",
+      "open_to_work_flag": true, "profile_views_received_30d": 10, "applications_submitted_30d": 2,
+      "recruiter_response_rate": 0.7, "avg_response_time_hours": 5, "skill_assessment_scores": {"Kubernetes": 90, "Rust": 88, "Go": 85},
+      "connection_count": 300, "endorsements_received": 11, "notice_period_days": 30,
+      "expected_salary_range_inr_lpa": {"min": 30, "max": 45}, "preferred_work_mode": "hybrid",
+      "willing_to_relocate": true, "github_activity_score": 50, "search_appearance_30d": 20,
+      "saved_by_recruiters_30d": 4, "interview_completion_rate": 0.8, "offer_acceptance_rate": 0.5,
+      "verified_email": true, "verified_phone": true, "linkedin_connected": true}
+  },
+  {
+    "candidate_id": "CAND_9000004",
+    "profile": {
+      "anonymized_name": "Synthetic Off-Domain",
+      "headline": "Computer Vision Engineer | Robotics",
+      "summary": "Computer vision and robotics engineer focused on object detection, image segmentation and SLAM for autonomous systems.",
+      "location": "Bangalore, Karnataka", "country": "India",
+      "years_of_experience": 7.0, "current_title": "Computer Vision Engineer",
+      "current_company": "VisionBots", "current_company_size": "51-200", "current_industry": "Robotics"
+    },
+    "career_history": [
+      {"company": "VisionBots", "title": "Computer Vision Engineer", "start_date": "2019-03-01",
+       "end_date": null, "duration_months": 87, "is_current": true, "industry": "Robotics",
+       "company_size": "51-200", "description": "Built object-detection and image-segmentation models with OpenCV and PyTorch for autonomous robots; worked on SLAM and motion planning."}
+    ],
+    "education": [{"institution": "NIT", "degree": "B.Tech", "field_of_study": "ECE",
+      "start_year": 2012, "end_year": 2016, "grade": "8.2", "tier": "tier_2"}],
+    "skills": [
+      {"name": "Computer Vision", "proficiency": "expert", "endorsements": 30, "duration_months": 84},
+      {"name": "PyTorch", "proficiency": "advanced", "endorsements": 20, "duration_months": 70}
+    ],
+    "redrob_signals": {
+      "profile_completeness_score": 88, "signup_date": "2022-01-01", "last_active_date": "2026-05-10",
+      "open_to_work_flag": true, "profile_views_received_30d": 25, "applications_submitted_30d": 2,
+      "recruiter_response_rate": 0.6, "avg_response_time_hours": 8, "skill_assessment_scores": {"Computer Vision": 90},
+      "connection_count": 400, "endorsements_received": 50, "notice_period_days": 30,
+      "expected_salary_range_inr_lpa": {"min": 30, "max": 45}, "preferred_work_mode": "hybrid",
+      "willing_to_relocate": true, "github_activity_score": 55, "search_appearance_30d": 30,
+      "saved_by_recruiters_30d": 5, "interview_completion_rate": 0.9, "offer_acceptance_rate": 0.6,
+      "verified_email": true, "verified_phone": true, "linkedin_connected": true}
+  },
+  {
+    "candidate_id": "CAND_9000005",
+    "profile": {
+      "anonymized_name": "Synthetic Consulting Only",
+      "headline": "Senior Software Engineer",
+      "summary": "Software engineer delivering client projects across banking and insurance.",
+      "location": "Chennai, Tamil Nadu", "country": "India",
+      "years_of_experience": 9.0, "current_title": "Software Engineer",
+      "current_company": "Infosys", "current_company_size": "10001+", "current_industry": "IT Services"
+    },
+    "career_history": [
+      {"company": "Infosys", "title": "Software Engineer", "start_date": "2020-01-01",
+       "end_date": null, "duration_months": 77, "is_current": true, "industry": "IT Services",
+       "company_size": "10001+", "description": "Delivered Java backend modules for banking clients; some SQL and ETL work."},
+      {"company": "TCS", "title": "Systems Engineer", "start_date": "2016-06-01",
+       "end_date": "2019-12-01", "duration_months": 42, "is_current": false, "industry": "IT Services",
+       "company_size": "10001+", "description": "Maintained client applications and data pipelines."}
+    ],
+    "education": [{"institution": "Anna University", "degree": "B.E.", "field_of_study": "CS",
+      "start_year": 2012, "end_year": 2016, "grade": "7.5", "tier": "tier_3"}],
+    "skills": [
+      {"name": "Java", "proficiency": "advanced", "endorsements": 25, "duration_months": 100},
+      {"name": "SQL", "proficiency": "advanced", "endorsements": 20, "duration_months": 90}
+    ],
+    "redrob_signals": {
+      "profile_completeness_score": 80, "signup_date": "2021-01-01", "last_active_date": "2026-05-01",
+      "open_to_work_flag": true, "profile_views_received_30d": 15, "applications_submitted_30d": 4,
+      "recruiter_response_rate": 0.65, "avg_response_time_hours": 10, "skill_assessment_scores": {"Java": 80},
+      "connection_count": 350, "endorsements_received": 45, "notice_period_days": 90,
+      "expected_salary_range_inr_lpa": {"min": 22, "max": 32}, "preferred_work_mode": "onsite",
+      "willing_to_relocate": true, "github_activity_score": 10, "search_appearance_30d": 12,
+      "saved_by_recruiters_30d": 2, "interview_completion_rate": 0.8, "offer_acceptance_rate": 0.5,
+      "verified_email": true, "verified_phone": true, "linkedin_connected": true}
+  },
+  {
+    "candidate_id": "CAND_9000006",
+    "profile": {
+      "anonymized_name": "Synthetic Inactive Star",
+      "headline": "Senior ML Engineer | Recommender Systems",
+      "summary": "Senior ML engineer; built large-scale recommendation and ranking systems with embeddings and learning-to-rank.",
+      "location": "Hyderabad, Telangana", "country": "India",
+      "years_of_experience": 8.0, "current_title": "Senior Machine Learning Engineer",
+      "current_company": "RecoLabs", "current_company_size": "501-1000", "current_industry": "Internet"
+    },
+    "career_history": [
+      {"company": "RecoLabs", "title": "Senior Machine Learning Engineer", "start_date": "2020-01-01",
+       "end_date": null, "duration_months": 77, "is_current": true, "industry": "Internet",
+       "company_size": "501-1000", "description": "Owned the recommendation and ranking stack; embeddings, FAISS retrieval, learning-to-rank, NDCG evaluation and A/B testing."}
+    ],
+    "education": [{"institution": "BITS Pilani", "degree": "B.E.", "field_of_study": "CS",
+      "start_year": 2011, "end_year": 2015, "grade": "8.5", "tier": "tier_1"}],
+    "skills": [
+      {"name": "Machine Learning", "proficiency": "expert", "endorsements": 60, "duration_months": 96},
+      {"name": "Recommendation Systems", "proficiency": "expert", "endorsements": 40, "duration_months": 80}
+    ],
+    "redrob_signals": {
+      "profile_completeness_score": 92, "signup_date": "2021-01-01", "last_active_date": "2025-09-01",
+      "open_to_work_flag": false, "profile_views_received_30d": 2, "applications_submitted_30d": 0,
+      "recruiter_response_rate": 0.05, "avg_response_time_hours": 100, "skill_assessment_scores": {"Machine Learning": 90},
+      "connection_count": 700, "endorsements_received": 100, "notice_period_days": 90,
+      "expected_salary_range_inr_lpa": {"min": 45, "max": 60}, "preferred_work_mode": "remote",
+      "willing_to_relocate": false, "github_activity_score": 40, "search_appearance_30d": 8,
+      "saved_by_recruiters_30d": 1, "interview_completion_rate": 0.4, "offer_acceptance_rate": -1,
+      "verified_email": true, "verified_phone": true, "linkedin_connected": true}
+  }
+]
