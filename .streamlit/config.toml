@@ -1,0 +1,5 @@
+# Streamlit Community Cloud / local server configuration
+[server]
+# Max upload size for the file_uploader, in MB. Streamlit's default is 200;
+# raised to 500 so larger candidate files can be uploaded to the sandbox.
+maxUploadSize = 500
