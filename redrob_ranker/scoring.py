@@ -12,8 +12,14 @@ multipliers encode the JD's hard rules ("title-chaser", "consulting-only",
 defensible by reference to job_description.docx.
 
 DEFAULT_WEIGHTS are deliberately set by hand to sensible priors so the system
-works with zero training and is easy to defend. Re-balance them here if you want
-to change the model's emphasis; the ranker is fully deterministic.
+works with zero training and is easy to defend.  Re-balance them here if you
+want to change the model's emphasis; the ranker is fully deterministic.
+
+The role share (0.22) is lowered relative to a naive "role first" weighting
+because the JD explicitly allows a Tier-B candidate with strong career-history
+domain evidence (a "Tier-5 recovery") to compete.  Experience decays steeply
+outside the 5-9 yr band, and a junior-titled candidate is multiplied by 0.55,
+so 3-yr / 15-yr / Junior outliers don't sneak into the top 100.
 """
 from __future__ import annotations
 import math
@@ -23,9 +29,9 @@ from . import concepts as C
 from . import honeypots
 
 DEFAULT_WEIGHTS = {
-    "role": 0.26,
-    "domain": 0.30,
-    "experience": 0.12,
+    "role": 0.22,
+    "domain": 0.32,
+    "experience": 0.14,
     "company": 0.12,
     "skills": 0.10,
     "education": 0.04,
@@ -49,7 +55,7 @@ def role_score(f) -> float:
     score = max(base, 0.55 * base + 0.45 * best)
     # seniority: a "Junior/Intern/Associate" core title is not a senior hire
     if f.get("is_junior"):
-        score *= 0.72
+        score *= 0.55
     return score
 
 
@@ -69,10 +75,11 @@ def experience_score(f) -> float:
         return 1.0
     if C.EXP_OK_LOW <= y <= C.EXP_OK_HIGH:
         return 0.9
-    # smooth decay outside the band, never fully zero (JD is flexible)
+    # steeper decay outside the OK band so a 3-yr or 15-yr candidate has to be
+    # exceptional on every other axis to crack the top 100.
     if y < C.EXP_OK_LOW:
-        return max(0.2, 1.0 - (C.EXP_OK_LOW - y) * 0.18)
-    return max(0.3, 1.0 - (y - C.EXP_OK_HIGH) * 0.10)
+        return max(0.10, 1.0 - (C.EXP_OK_LOW - y) * 0.25)
+    return max(0.15, 1.0 - (y - C.EXP_OK_HIGH) * 0.15)
 
 
 def company_score(f) -> float:

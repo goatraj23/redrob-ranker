@@ -1,7 +1,7 @@
 """
 Fast, dependency-free tests. Run with either:
     python -m pytest tests/ -q
-    python tests/test_basic.py      # no pytest needed
+    python3 tests/test_basic.py      # no pytest needed
 """
 from __future__ import annotations
 import json
@@ -66,7 +66,9 @@ def test_rank_output_is_spec_shaped():
             for c in SAMPLES.values():
                 fh.write(json.dumps(c) + "\n")
         out = os.path.join(d, "sub.csv")
-        run(jl, out)
+        # single worker keeps the test stable across machines (so the 6-line
+        # fixture isn't split across processes)
+        run(jl, out, n_workers=1)
         import csv
         rows = list(csv.reader(open(out)))
         assert rows[0] == ["candidate_id", "rank", "score", "reasoning"]

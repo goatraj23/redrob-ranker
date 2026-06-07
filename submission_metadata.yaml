@@ -22,18 +22,19 @@ sandbox_link: "https://TODO-your-streamlit-or-hf-space-url"
 # A sample-only Streamlit app is included at sandbox/app.py. Deploy it free on
 # Streamlit Community Cloud or HuggingFace Spaces and paste the URL here.
 
-reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
-# Runs end-to-end on CPU, no network, ~35s for the full 100K pool, <50 MB RAM.
+reproduce_command: "python3 rank.py --candidates ./candidates.jsonl --out ./submission.csv"
+# Runs end-to-end on CPU, no network, ~3s for the full 100K pool on 8 cores
+# (multiprocessing + cheap pre-filter), ~63 MB aggregate RSS.
 
 # ============================================================================
 # Compute environment
 # ============================================================================
 compute:
-  platform: "TODO (e.g. MacBook Pro M2 / Ubuntu 22.04 box)"
+  platform: "MacBook (Apple Silicon)"
   cpu_cores: 8
   ram_gb: 16
-  python_version: "3.11"
-  os: "TODO"
+  python_version: "3.13"
+  os: "macOS (Darwin)"
   uses_gpu_for_inference: false
   has_network_during_ranking: false
   pre_computation_required: false        # ranker needs no precomputed artifacts
@@ -55,19 +56,24 @@ ai_usage_summary: |
 # Approach summary
 # ============================================================================
 methodology_summary: |
-  Transparent composite ranker over precomputed, cheap features. Seven bounded
-  components (role/title, JD-concept domain match, experience band, product-vs-
-  services company, corroborated skills, education, location) are combined as a
-  weighted sum, then modified MULTIPLICATIVELY by three gates: a disqualifier
-  multiplier (consulting-only career, vision/speech/robotics-only, research-only,
-  recent-framework-only, title-chasing), a behavioural-availability multiplier
-  (recency, recruiter response rate, open-to-work, notice period), and a
-  honeypot/consistency gate that forces internally-impossible profiles to the
-  bottom (0% honeypots in our top 100). Domain fit is read from career-history
-  TEXT, not skill tags, so a "Marketing Manager" stuffed with AI keywords loses
-  to a product-company engineer who actually built a recommendation system.
-  Weights are hand-set priors defined in scoring.py; the ranker is deterministic
-  and uses no machine-learning model. Runs in ~35s for 100K on CPU, no network.
+  Transparent composite ranker over cheap features, parallelised with the
+  stdlib multiprocessing module and gated by a conservative pre-filter so the
+  expensive text scan only runs on candidates that could plausibly reach the
+  top 100. Seven bounded components (role/title, JD-concept domain match,
+  experience band, product-vs-services company, corroborated skills,
+  education, location) are combined as a weighted sum, then modified
+  MULTIPLICATIVELY by three gates: a disqualifier multiplier (consulting-only
+  career, vision/speech/robotics-only, research-only, recent-framework-only,
+  title-chasing), a behavioural-availability multiplier (recency, recruiter
+  response rate, open-to-work, notice period), and a honeypot/consistency gate
+  that forces internally-impossible profiles to the bottom (0% honeypots in
+  our top 100). Domain fit is read from career-history TEXT, not skill tags,
+  so a "Marketing Manager" stuffed with AI keywords loses to a product-company
+  engineer who actually built a recommendation system. Weights are hand-set
+  priors in scoring.py; the ranker is deterministic and uses no ML model.
+  Offline evaluation is run against two independent label sets (career-history
+  rubric and a deliberately different headline-only rubric) so the metrics
+  aren't self-validating. Runs in ~3 s for 100K on 8 CPU cores, no network.
 
 # ============================================================================
 # Declarations

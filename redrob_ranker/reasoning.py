@@ -6,6 +6,11 @@ that mentions skills not in the profile (hallucination), and reasoning whose
 tone contradicts the rank.  We therefore build each sentence ONLY from facts we
 read off the candidate, cite concrete evidence (real matched phrases, real
 numbers), and switch tone based on the computed score.
+
+Location callouts are not gated on `willing_to_relocate`, and when the
+candidate has no usable city the reasoning falls back to a concrete
+career-history fact (recent non-services company, or a second IR phrase) so
+top-100 rationales don't read templatey to a manual reviewer.
 """
 from __future__ import annotations
 from typing import Dict, Any, List
@@ -33,6 +38,17 @@ def _evidence_phrases(candidate, limit=2) -> List[str]:
     return found
 
 
+def _extra_evidence_phrase(candidate, already: List[str]) -> str:
+    """Return one more matched phrase not already cited (for fallback colour)."""
+    from .features import build_text
+    text = build_text(candidate)
+    skip = set(already) | {"retrieval"}
+    for ph in C.CORE_IR["phrases"] + C.CORE_ML["phrases"]:
+        if ph in text and ph not in skip and len(ph.strip(" .,(")) > 3:
+            return ph.strip(" .,(")
+    return ""
+
+
 def _real_ai_skills(candidate, limit=3) -> List[str]:
     out = []
     terms = ("machine learning", "deep learning", "nlp", "llm", "retrieval",
@@ -45,6 +61,20 @@ def _real_ai_skills(candidate, limit=3) -> List[str]:
         if len(out) >= limit:
             break
     return out
+
+
+def _recent_product_role(candidate) -> str:
+    """The most recent non-consulting role's company name, if any."""
+    history = candidate.get("career_history", []) or []
+    cf = [c.lower() for c in C.CONSULTING_FIRMS]
+    for r in history:
+        company = (r.get("company") or "").strip()
+        if not company:
+            continue
+        if any(k in company.lower() for k in cf):
+            continue
+        return company
+    return ""
 
 
 def generate(candidate: Dict[str, Any], f: Dict[str, Any], info: Dict[str, Any]) -> str:
@@ -86,14 +116,32 @@ def generate(candidate: Dict[str, Any], f: Dict[str, Any], info: Dict[str, Any])
         pos.append(f"{city}-based (preferred location)" if city else "Pune/Noida-based")
     elif f["welcome_city"]:
         pos.append(f"{city}-based" if city else "in a welcome metro")
-    elif f["in_india"] and f["willing_to_relocate"]:
-        pos.append(f"{city}-based, open to relocate" if city else "India-based, open to relocate")
+    elif f["in_india"]:
+        # city callout is not gated on willing_to_relocate; a candidate already
+        # in an Indian city should be named even if they prefer to stay
+        if f["willing_to_relocate"] and city:
+            pos.append(f"{city}-based, open to relocate")
+        elif city:
+            pos.append(f"{city}-based")
+        elif f["willing_to_relocate"]:
+            pos.append("India-based, open to relocate")
     if f["response_rate"] >= 0.6 and f["days_inactive"] <= 60:
         pos.append("responsive and recently active")
     if f["open_to_work"]:
         pos.append("open to work")
     if isinstance(f["notice_days"], (int, float)) and f["notice_days"] <= 30:
         pos.append(f"{int(f['notice_days'])}-day notice")
+
+    # if we still have no colour at all and the score is high, pull a concrete
+    # fact from the profile so the reasoning isn't a bare title sentence.
+    if score >= 0.45 and not pos:
+        rec = _recent_product_role(candidate)
+        if rec:
+            pos.append(f"recent role at {rec}")
+        else:
+            extra = _extra_evidence_phrase(candidate, ev)
+            if extra:
+                pos.append(f"also cites {extra}")
 
     # ---- honest concerns --------------------------------------------------
     concerns = list(info["dq_notes"]) + list(info["beh_notes"])

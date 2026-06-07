@@ -16,8 +16,13 @@ _broken_git_remove_me/
 label/
 weights.json
 
+# local-only snapshot of the original (v1) implementation, kept for reference
+# after the v2 promotion. Never push.
+_local_v1_backup/
+
 # Generated outputs
 submission.csv
+submission_v2.csv
 team_*.csv
 *.out
 
