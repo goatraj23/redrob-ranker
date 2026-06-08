@@ -21,7 +21,7 @@ weights.json
 _local_v1_backup/
 
 # Generated outputs
-submission.csv
+# submission.csv is committed as the canonical submission artifact
 submission_v2.csv
 team_*.csv
 *.out
