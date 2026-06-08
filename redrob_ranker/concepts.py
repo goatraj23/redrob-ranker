@@ -13,29 +13,48 @@ Everything here is derived directly from job_description.docx:
     code), and
   - the behavioural reality (a perfect-on-paper candidate who is inactive or
     unresponsive is, for hiring, not available).
+
+NOTE on matching: phrases are matched as substrings against the candidate's
+combined free text (which is space-joined and space-padded in features.py).
+Short tokens that would otherwise match *inside* common words are written with a
+LEADING SPACE so they only match at a word start, e.g. " rag" matches "rag" but
+not "leve[rag]e"/"sto[rag]e"; " ltr" not "fi[ltr]ation"/"u[ltr]a"; " acl" not
+"or[acl]e". Reasoning strips the padding before citing.
 """
 
 # ---------------------------------------------------------------------------
-# Concept lexicons.  Phrases are matched case-insensitively against the
-# candidate's combined free text (summary + every career-history description +
-# skill names).  Weights encode how strongly each concept signals fit.
+# Concept lexicons.
 # ---------------------------------------------------------------------------
 
 # The decisive "this person actually builds the thing we need" signals.
 CORE_IR = {
     "weight": 3.0,
     "phrases": [
-        "recommendation system", "recommender", "recommendation engine",
-        "learning to rank", "learning-to-rank", "ltr",
+        "recommendation system", "recommendation systems", "recommender",
+        "recommender system", "recommender systems", "recommendation engine",
+        "recommendation model",
+        "learning to rank", "learning-to-rank", " ltr",
         "information retrieval", "search relevance", "search ranking",
-        "semantic search", "vector search", "nearest neighbor",
-        "approximate nearest neighbor", "ann index",
-        "retrieval", "ranking system", "ranking model", "re-ranking", "reranking",
-        "personalization", "personalisation", "relevance tuning",
+        "relevance ranking", "relevance model", "relevance tuning",
+        "semantic search", "vector search", "similarity search",
+        "dense retrieval", "semantic retrieval",
+        "nearest neighbor", "nearest neighbour", "k-nearest neighbor",
+        "approximate nearest neighbor", "ann index", "hnsw",
+        "retrieval", "retrieval pipeline", "candidate retrieval",
+        "candidate generation", "matching system", "search engine",
+        "ranking system", "ranking model", "ranking pipeline", "neural ranking",
+        "re-ranking", "reranking", "cross-encoder", "bi-encoder",
+        "two-tower", "dual encoder", "colbert",
+        "personalization", "personalisation", "personalized recommendation",
+        "personalised recommendation", "query understanding", "query expansion",
+        "collaborative filtering", "content-based filtering",
+        "content based filtering", "matrix factorization", "matrix factorisation",
+        "feed ranking", "ads ranking", "ctr prediction", "click-through rate",
+        "session-based recommendation", "sequential recommendation",
         "embedding", "embeddings", "sentence-transformers", "sentence transformers",
-        "bm25", "okapi", "faiss", "pinecone", "weaviate", "qdrant", "milvus",
-        "elasticsearch", "opensearch", "rag", "retrieval-augmented",
-        "candidate generation", "matching system", "two-tower", "dual encoder",
+        "vector database", "vector databases", "bm25", "okapi",
+        "faiss", "pinecone", "weaviate", "qdrant", "milvus", "vespa", "lucene",
+        "elasticsearch", "opensearch", " rag", "rag pipeline", "retrieval-augmented",
     ],
 }
 
@@ -44,15 +63,24 @@ CORE_ML = {
     "weight": 1.6,
     "phrases": [
         "machine learning", "deep learning", "applied ml", "applied machine learning",
-        "natural language processing", " nlp ", "nlp.", "(nlp", "nlp,",
-        "transformer", "bert", "large language model", " llm", "llms",
-        "fine-tune", "fine-tuning", "fine tuned", "lora", "qlora", "peft",
-        "xgboost", "lightgbm", "gradient boosting", "pytorch", "tensorflow",
-        "model serving", "model inference", "inference optimization",
-        "feature engineering", "feature store", "mlops",
+        "natural language processing", " nlp ", "nlp.", "(nlp", "nlp,", " nlp",
+        "transformer", "transformers", " bert", "roberta", "distilbert",
+        "large language model", "language model", " llm", "llms",
+        "gpt-3", "gpt-4", "gpt model",
+        "fine-tune", "fine-tuning", "fine tuned", " lora", "qlora", "peft",
+        "xgboost", "lightgbm", "gradient boosting", "pytorch", "tensorflow", "keras",
+        "scikit-learn", "scikit learn", "sklearn", "onnx", "vllm",
+        "hugging face", "huggingface", "word2vec", "fasttext", "word embeddings",
+        "sentence embedding", "sentence embeddings", "semantic similarity",
+        "text classification", "named entity recognition", "sentiment analysis",
+        "question answering", "text summarization", "topic modeling",
+        "model serving", "model inference", "model deployment", "model registry",
+        "inference optimization", "feature engineering", "feature pipeline",
+        "feature store", "mlops",
         "experimentation", "ab test", "a/b test", "a/b testing",
-        "ndcg", "mrr", "mean reciprocal rank", "map@", "offline evaluation",
-        "online evaluation", "evaluation framework", "evaluation metric",
+        "ndcg", "mrr", "mean reciprocal rank", "map@", "ranking loss",
+        "offline evaluation", "online evaluation", "evaluation framework",
+        "evaluation metric", "hyperparameter tuning", "cross-validation",
     ],
 }
 
@@ -62,7 +90,9 @@ DATA_ENG = {
     "weight": 0.7,
     "phrases": [
         "data pipeline", "data pipelines", "etl", "elt", "apache spark", "pyspark",
-        "spark", "airflow", "kafka", "data warehouse", "snowflake", "dbt",
+        "spark", "airflow", "kafka", "flink", "apache beam", "databricks",
+        "data warehouse", "snowflake", "dbt", "bigquery", "redshift",
+        "trino", "presto", "hive", "data lake",
         "big data", "streaming pipeline", "batch processing",
     ],
 }
@@ -72,8 +102,9 @@ ENG_CRAFT = {
     "weight": 0.5,
     "phrases": [
         "production", "deployed to production", "at scale", "real users",
-        "low latency", "high throughput", "microservice", "api", "python",
-        "system design", "distributed system", "scalability",
+        "low latency", "high throughput", "microservice", " api", "rest api",
+        "python", "system design", "distributed system", "scalability",
+        "high availability",
     ],
 }
 
@@ -83,9 +114,10 @@ OFF_DOMAIN = {
     "weight": 1.0,  # used as a penalty magnitude, see scoring.py
     "phrases": [
         "computer vision", "image classification", "object detection",
-        "image segmentation", "opencv", "yolo", "ocr pipeline",
-        "speech recognition", "asr", "text to speech", "speech synthesis",
-        "robotics", "autonomous vehicle", "slam", "motion planning",
+        "image segmentation", "opencv", "yolo", "ocr pipeline", "optical character",
+        "speech recognition", " asr", "text to speech", "speech synthesis",
+        "robotics", "autonomous vehicle", "autonomous driving", " slam",
+        "motion planning", "point cloud", "lidar", "pose estimation",
         "embedded systems", "firmware", "control systems",
     ],
 }
@@ -103,8 +135,8 @@ FRAMEWORK_FLUFF = {
 RESEARCH_ONLY = {
     "phrases": [
         "phd", "postdoc", "post-doctoral", "research scholar", "research fellow",
-        "published", "publication", "peer-reviewed", "neurips", "icml", "acl",
-        "cvpr", "research intern", "thesis", "dissertation",
+        "published", "publication", "peer-reviewed", "neurips", "icml", " acl",
+        "emnlp", "cvpr", "research intern", "thesis", "dissertation",
     ],
 }
 
@@ -120,6 +152,7 @@ TITLE_TIER_A = [
     "nlp engineer", "research engineer", "search engineer",
     "data scientist", "ml scientist", "recommendation", "relevance engineer",
     "staff machine learning", "senior machine learning",
+    "deep learning engineer", "personalization engineer", "ranking engineer",
 ]
 
 # Adjacent engineering — can be promoted to a strong fit by domain text.

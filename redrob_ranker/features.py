@@ -5,11 +5,33 @@ so it is fully reproducible on CPU with no network.
 """
 from __future__ import annotations
 import datetime
+import re
 from typing import Dict, Any
 
 from . import concepts as C
 
 DATASET_DATE = datetime.date(2026, 6, 1)
+
+# Word-aware AI-skill detection. Short tokens are matched on word boundaries so
+# "ML" matches but "HTML"/"XML" do not, and "search" matches but "research" does
+# not. (Plain substring matching here was a bug that inflated the AI-skill count
+# for web / data profiles that list HTML, XML, "Research", etc.)
+_AI_SKILL_WORD = re.compile(r"\b(ml|nlp|llm|ai|ltr|rag|recsys|gpt|search)\b")
+_AI_SKILL_PHRASE = (
+    "machine learning", "deep learning", "natural language processing",
+    "information retrieval", "large language model", "learning to rank",
+    "retrieval", "ranking", "recommendation", "recommender", "embedding",
+    "transformer", "pytorch", "tensorflow", "scikit", "xgboost", "lightgbm",
+    "semantic search", "vector search", "elasticsearch", "opensearch",
+    "search relevance", "personalization", "personalisation",
+)
+
+
+def is_ai_skill(name: str) -> bool:
+    n = (name or "").lower()
+    if _AI_SKILL_WORD.search(n):
+        return True
+    return any(p in n for p in _AI_SKILL_PHRASE)
 
 
 def _pdate(s):
@@ -124,11 +146,7 @@ def extract(candidate: Dict[str, Any]) -> Dict[str, Any]:
     f["willing_to_relocate"] = bool(signals.get("willing_to_relocate"))
 
     # ---- skills corroboration (anti keyword-stuffing) ---------------------
-    ai_skill_terms = ("machine learning", "deep learning", "nlp", "ml", "llm",
-                      "retrieval", "ranking", "recommendation", "embedding",
-                      "transformer", "pytorch", "tensorflow", "search")
-    ai_skills = [s for s in skills
-                 if any(t in str(s.get("name", "")).lower() for t in ai_skill_terms)]
+    ai_skills = [s for s in skills if is_ai_skill(str(s.get("name", "")))]
     f["n_ai_skills"] = len(ai_skills)
     # corroboration: endorsements + months of use + assessment scores
     corro = 0.0

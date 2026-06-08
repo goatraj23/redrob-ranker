@@ -26,7 +26,7 @@ def _evidence_phrases(candidate, limit=2) -> List[str]:
     found = []
     for ph in C.CORE_IR["phrases"]:
         if ph in text and ph not in ("retrieval",):
-            found.append(ph)
+            found.append(ph.strip())
         if len(found) >= limit:
             return found
     for ph in C.CORE_ML["phrases"]:
@@ -50,13 +50,11 @@ def _extra_evidence_phrase(candidate, already: List[str]) -> str:
 
 
 def _real_ai_skills(candidate, limit=3) -> List[str]:
+    from .features import is_ai_skill
     out = []
-    terms = ("machine learning", "deep learning", "nlp", "llm", "retrieval",
-             "ranking", "recommendation", "embedding", "transformer",
-             "pytorch", "tensorflow", "search", "information retrieval")
     for s in candidate.get("skills", []) or []:
         nm = str(s.get("name", ""))
-        if any(t in nm.lower() for t in terms):
+        if is_ai_skill(nm):
             out.append(nm)
         if len(out) >= limit:
             break

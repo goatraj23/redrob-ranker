@@ -38,6 +38,16 @@ _CHEAP_IR_HINTS = (
     "personalisation",
 )
 
+# High-precision hints used only when scanning career-history DESCRIPTIONS.
+# Deliberately excludes the common-in-prose words ("search", "machine learning",
+# "nlp") so a single passing mention doesn't keep half the pool; it targets the
+# genuine recsys/ranking/retrieval builders the headline/skills checks missed.
+_DESC_IR_HINTS = (
+    "recommendation", "recommender", "learning to rank", "collaborative filtering",
+    "ranking model", "ranking system", "retrieval", "embedding",
+    "personalization", "personalisation", "vector search", "semantic search",
+)
+
 
 def _title_is_a_or_b(title_lc: str) -> bool:
     if not title_lc:
@@ -77,5 +87,13 @@ def cheap_can_compete(candidate: Dict[str, Any]) -> bool:
     blob = headline + " " + summary
     if any(t in blob for t in _CHEAP_IR_HINTS):
         return True
+
+    # also scan the most recent role descriptions for a cheap IR hint, so a
+    # genuine builder whose only signal sits in their job description (not the
+    # headline/summary or skills) still survives the cull.
+    for r in (candidate.get("career_history", []) or [])[:2]:
+        desc = (r.get("description", "") or "").lower()
+        if any(t in desc for t in _DESC_IR_HINTS):
+            return True
 
     return False
