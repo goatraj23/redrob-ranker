@@ -1,7 +1,7 @@
 # Redrob Hackathon — Submission Metadata
 # Mirrors the portal metadata. Fill the TODO fields before submitting.
 
-team_name: "TODO-your-team-name"
+team_name: "Aether"
 
 primary_contact:
   name: "TODO-your-name"
@@ -18,9 +18,9 @@ team_members:
 # ============================================================================
 github_repo: "https://github.com/goatraj23/redrob-ranker"
 
-sandbox_link: "https://TODO-your-streamlit-or-hf-space-url"
-# A sample-only Streamlit app is included at sandbox/app.py. Deploy it free on
-# Streamlit Community Cloud or HuggingFace Spaces and paste the URL here.
+sandbox_link: "https://aether-ranker.streamlit.app"
+# Sample-only Streamlit app (sandbox/app.py) deployed on Streamlit Community
+# Cloud from this repo; auto-redeploys on push to main.
 
 reproduce_command: "python3 rank.py --candidates ./candidates.jsonl --out ./submission.csv"
 # Runs end-to-end on CPU, no network, ~3s for the full 100K pool on 8 cores
