@@ -54,9 +54,9 @@ final = base_fit × disqualifier_mult × behavioural_mult × honeypot_mult
 | domain match | 0.32 | Retrieval / ranking / recsys / NLP evidence **mined from career-history text**, IR-weighted |
 | experience | 0.14 | Peak at 6–8 yrs, plateau 5–9, steep decay outside so 3-yr / 15-yr outliers can't sneak in on availability alone |
 | company | 0.12 | Product-company exposure vs. whole-career IT-services/consulting |
-| skills | 0.10 | AI skills **corroborated** by endorsements + months-used + assessment scores (anti-stuffing) |
+| skills | 0.10 | AI skills **corroborated** by endorsements + months-used + assessment scores (anti-stuffing), plus a small GitHub-activity bonus (the JD values open-source/external validation) |
 | education | 0.04 | Light institution-tier nudge (JD weights culture/skills over pedigree) |
-| location | 0.06 | Pune/Noida preferred; Hyderabad/Mumbai/Delhi-NCR/Bangalore welcome; relocation considered |
+| location | 0.06 | Pune/Noida preferred; Hyderabad/Mumbai/Delhi-NCR welcome (the JD's enumerated list); Bangalore & other Tier-1 metros fine, better if relocating |
 
 The role share is intentionally lower than a naive "role first" weighting
 because the JD explicitly allows a Tier-B candidate with strong career-history
@@ -80,8 +80,10 @@ of the score**. `rank.py` normalises the final internal score to [0,1] for the
 
 ## Honeypot detection (`redrob_ranker/honeypots.py`)
 
-No IDs are hard-coded. We read each profile for genuine impossibilities — the
-same inspection a careful recruiter would do:
+No IDs are hard-coded. Two complementary lenses — both inspections a careful
+recruiter would do:
+
+**Internal consistency** (contradictions within the profile itself):
 
 - a *current* role claiming more months than have elapsed since its start date;
 - a role that ends before it starts;
@@ -89,6 +91,15 @@ same inspection a careful recruiter would do:
 - "expert/advanced" proficiency in skills used **0 months**;
 - assessment scores for skills that aren't on the profile;
 - experience that predates the start of education.
+
+**World consistency** (claims that contradict public knowledge): a role at a
+well-known company that *starts before the company was founded* — the brief's
+own canonical honeypot ("8 years of experience at a company founded 3 years
+ago"). A small founding-year table for prominent young AI companies lives in
+`concepts.COMPANY_FOUNDED`; matching is exact on the normalised company name,
+so lookalike names ("Sarvam Textiles") can never be hit. This lens is what
+catches the trap profiles claiming 2018–2022 tenures at companies like Krutrim
+or Sarvam AI (both founded 2023).
 
 Genuine impossibilities force the candidate to the bottom; softer overclaims
 apply a graded penalty.

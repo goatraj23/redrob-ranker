@@ -34,6 +34,13 @@ def is_ai_skill(name: str) -> bool:
     return any(p in n for p in _AI_SKILL_PHRASE)
 
 
+# Consulting firms are matched on word boundaries, not raw substrings, so the
+# short names cannot fire inside unrelated company names ("lti" in
+# "Multiplier", "cgi" in "Logicgift", ...).  Multi-word names work unchanged.
+_CONSULTING_RE = re.compile(
+    r"\b(" + "|".join(re.escape(k) for k in sorted(C.CONSULTING_FIRMS, key=len, reverse=True)) + r")\b")
+
+
 def _pdate(s):
     if not s or not isinstance(s, str):
         return None
@@ -128,7 +135,7 @@ def extract(candidate: Dict[str, Any]) -> Dict[str, Any]:
     n_roles = max(1, len(history))
     consulting_roles = sum(
         1 for c, ind in zip(companies, industries)
-        if any(k in c for k in C.CONSULTING_FIRMS) or any(k in ind for k in C.SERVICES_INDUSTRIES)
+        if _CONSULTING_RE.search(c) or any(k in ind for k in C.SERVICES_INDUSTRIES)
     )
     f["consulting_share"] = consulting_roles / n_roles
     f["all_services"] = (consulting_roles == len(history) and len(history) > 0) or \
@@ -181,6 +188,7 @@ def extract(candidate: Dict[str, Any]) -> Dict[str, Any]:
     f["saved_by_recruiters"] = int(signals.get("saved_by_recruiters_30d") or 0)
     f["github"] = float(signals.get("github_activity_score") if signals.get(
         "github_activity_score") is not None else -1)
+    f["work_mode"] = (signals.get("preferred_work_mode") or "").lower()
 
     # ---- career stability (title-chaser tell) -----------------------------
     short_stints = sum(1 for r in history
@@ -189,8 +197,16 @@ def extract(candidate: Dict[str, Any]) -> Dict[str, Any]:
     f["short_stints"] = short_stints
 
     # ---- "no recent hands-on code" tell -----------------------------------
-    managerial_now = f["title_tier"] == "D" and any(
-        k in f["current_title"].lower() for k in ("manager", "lead", "architect", "head", "director"))
+    # The JD's archetype is the engineer who moved into architecture/tech-lead/
+    # management and stopped writing code.  Those titles ("Solutions Architect",
+    # "Engineering Manager", "Tech Lead") classify as tier B/C/D, so any
+    # non-tier-A managerial title is in scope; scoring only applies the penalty
+    # when the hands-on domain signal is ALSO weak, so a coding architect with
+    # real retrieval/ranking evidence is unaffected.
+    managerial_now = f["title_tier"] != "A" and any(
+        k in f["current_title"].lower()
+        for k in ("manager", "architect", "head of", "director", "vp ",
+                  "vice president", "tech lead", "technical lead", "team lead"))
     f["managerial_now"] = managerial_now
 
     return f

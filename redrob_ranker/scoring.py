@@ -92,7 +92,11 @@ def company_score(f) -> float:
 def skills_score(f) -> float:
     # corroborated AI skills, not raw keyword count
     breadth = _sat(f["n_ai_skills"], k=4.0)
-    return min(1.0, 0.35 * breadth + 0.65 * f["ai_skill_corroboration"])
+    # JD: open-source / external validation is a plus ("we need to see how you
+    # think").  GitHub activity is independent corroboration of hands-on work.
+    gh = f.get("github", -1)
+    gh_bonus = 0.08 if gh >= 60 else (0.04 if gh >= 30 else 0.0)
+    return min(1.0, 0.35 * breadth + 0.65 * f["ai_skill_corroboration"] + gh_bonus)
 
 
 def education_score(f) -> float:
@@ -180,6 +184,10 @@ def behavioural_multiplier(f) -> Tuple[float, list]:
     # demand signal
     if f["saved_by_recruiters"] >= 5:
         m *= 1.03
+    # work-mode fit: the role is hybrid (Pune/Noida offices); a hard "remote"
+    # preference is a mild mismatch, not a disqualifier
+    if f.get("work_mode") == "remote":
+        m *= 0.96
     return min(m, 1.18), notes
 
 

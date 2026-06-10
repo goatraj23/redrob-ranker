@@ -201,17 +201,43 @@ CONSULTING_FIRMS = [
 SERVICES_INDUSTRIES = ["it services", "consulting", "outsourcing", "staffing", "bpo"]
 
 # ---------------------------------------------------------------------------
-# Location knowledge.  JD: Pune/Noida preferred; Hyderabad, Mumbai, Delhi NCR,
-# Bangalore welcome; relocation OK; outside India case-by-case, no visa.
+# Company founding years.  The honeypot brief's canonical example is "8 years
+# of experience at a company founded 3 years ago" — catching it requires the
+# same world knowledge a careful recruiter has.  Only prominent, unambiguous
+# names are listed, and matching is exact on the normalised company name (see
+# honeypots._founded_year), so a real candidate can't be hit by accident.
+# ---------------------------------------------------------------------------
+
+COMPANY_FOUNDED = {
+    # Indian AI startups (the dataset's seeded trap companies are here)
+    "krutrim": 2023, "krutrim ai": 2023, "ola krutrim": 2023,
+    "sarvam": 2023, "sarvam ai": 2023, "sarvam.ai": 2023,
+    # global AI companies young enough to be trap material
+    "openai": 2015, "anthropic": 2021, "mistral": 2023, "mistral ai": 2023,
+    "xai": 2023, "perplexity": 2022, "perplexity ai": 2022,
+    "hugging face": 2016, "huggingface": 2016, "cohere": 2019,
+    "pinecone": 2019, "qdrant": 2021, "weaviate": 2019, "zilliz": 2017,
+    "langchain": 2022, "llamaindex": 2023, "together ai": 2022, "groq": 2016,
+    # young Indian consumer/fintech often name-dropped on profiles
+    "zepto": 2021, "cred": 2018, "jar": 2021, "bharatpe": 2018, "slice": 2016,
+}
+
+# ---------------------------------------------------------------------------
+# Location knowledge.  JD: Pune/Noida preferred; "Candidates in Hyderabad,
+# Pune, Mumbai, Delhi NCR welcome to apply"; Tier-1 relocators considered;
+# outside India case-by-case, no visa.  Bangalore is deliberately NOT in the
+# welcome list — the JD enumerates the welcome metros and Bangalore isn't one;
+# it is treated as a Tier-1 "other India" city (fine, better if relocating).
 # ---------------------------------------------------------------------------
 
 PREFERRED_CITIES = ["pune", "noida"]
 WELCOME_CITIES = [
     "hyderabad", "mumbai", "delhi", "gurgaon", "gurugram", "ghaziabad",
-    "bangalore", "bengaluru", "new delhi", "navi mumbai", "faridabad",
+    "new delhi", "navi mumbai", "faridabad",
 ]
 # Other Indian metros — fine if willing to relocate.
 OTHER_INDIA_HINT = [
+    "bangalore", "bengaluru",
     "chennai", "kolkata", "ahmedabad", "jaipur", "indore", "chandigarh",
     "coimbatore", "kochi", "trivandrum", "bhubaneswar", "vizag", "nagpur",
 ]

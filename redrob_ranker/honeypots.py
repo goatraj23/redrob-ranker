@@ -5,16 +5,25 @@ The dataset seeds ~80 "subtly impossible" profiles that the ground truth forces
 to relevance tier 0.  Ranking any of them in the top 100 hurts the score, and
 honeypot rate > 10% in the top 100 is an automatic Stage-3 disqualification.
 
-We do NOT special-case known IDs.  Instead we read each profile for internal
-contradictions — exactly the inspection a careful recruiter would do.  Every
-check is a genuine impossibility or a strong overclaim, so false positives on
-real candidates are rare and acceptable.
+We do NOT special-case known IDs.  Two complementary lenses, both of which a
+careful recruiter would apply:
+
+  1. INTERNAL consistency — contradictions within the profile itself
+     (impossible tenure, reversed dates, "expert" skills used 0 months, ...).
+  2. WORLD consistency — claims that contradict public knowledge: a role at a
+     well-known company that starts before the company existed (the brief's
+     own example: "8 years of experience at a company founded 3 years ago").
+     The founding-year table lives in concepts.COMPANY_FOUNDED and matches the
+     normalised company name exactly, so it cannot fire on lookalike names.
 
 Returns (is_hard_honeypot, penalty_multiplier, reasons).
 """
 from __future__ import annotations
 import datetime
+import re
 from typing import Dict, Any, List, Tuple
+
+from . import concepts as C
 
 # Reference "today" for the dataset (data last touched 2026-06).  Tenure that
 # exceeds time elapsed since a start date is physically impossible.
@@ -32,6 +41,24 @@ def _pdate(s):
 
 def _months_between(d1: datetime.date, d2: datetime.date) -> int:
     return (d2.year - d1.year) * 12 + (d2.month - d1.month)
+
+
+_COMPANY_SUFFIXES = re.compile(
+    r"\b(pvt|private|ltd|limited|inc|llc|llp|technologies|technology|labs|india)\b\.?")
+
+
+def _founded_year(company: str):
+    """Founding year for a known company, or None.  Matching is exact on the
+    normalised name (lowercase, punctuation/suffixes stripped) — deliberately
+    strict so e.g. 'Sarvam Textiles' is NOT treated as Sarvam AI."""
+    if not company:
+        return None
+    n = company.lower().strip()
+    if n in C.COMPANY_FOUNDED:
+        return C.COMPANY_FOUNDED[n]
+    n = _COMPANY_SUFFIXES.sub(" ", n.replace(".", " ").replace(",", " "))
+    n = " ".join(n.split())
+    return C.COMPANY_FOUNDED.get(n)
 
 
 def detect(candidate: Dict[str, Any]) -> Tuple[bool, float, List[str]]:
@@ -69,6 +96,20 @@ def detect(candidate: Dict[str, Any]) -> Tuple[bool, float, List[str]]:
                 if isinstance(dur, int) and abs(dur - span) > 9:
                     soft_penalty *= 0.5
                     reasons.append("stated duration disagrees with its own dates")
+
+    # --- 1b. Role at a known company that predates the company's founding --
+    # World-knowledge check: the brief's canonical honeypot ("8 years at a
+    # company founded 3 years ago").  Purely internal checks cannot see this.
+    for role in history:
+        fy = _founded_year(role.get("company") or "")
+        if fy is None:
+            continue
+        sd = _pdate(role.get("start_date"))
+        if sd and sd.year < fy:
+            hard = True
+            reasons.append(
+                f"claims to have joined {role.get('company')} in {sd.year}, "
+                f"but the company was founded in {fy}")
 
     # --- 2. Summed tenure wildly exceeds stated years of experience --------
     if summed_months > (yoe * 12) + 24:

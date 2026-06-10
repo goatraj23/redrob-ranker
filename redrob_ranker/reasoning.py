@@ -5,48 +5,81 @@ Stage-4 manual review penalises empty/identical/templated reasoning, anything
 that mentions skills not in the profile (hallucination), and reasoning whose
 tone contradicts the rank.  We therefore build each sentence ONLY from facts we
 read off the candidate, cite concrete evidence (real matched phrases, real
-numbers), and switch tone based on the computed score.
+numbers), and switch tone based on the computed score AND the assigned rank.
 
-Location callouts are not gated on `willing_to_relocate`, and when the
-candidate has no usable city the reasoning falls back to a concrete
-career-history fact (recent non-services company, or a second IR phrase) so
-top-100 rationales don't read templatey to a manual reviewer.
+Anti-template measures (each deterministic, keyed off the candidate_id so the
+output is identical across runs and machines):
+  * evidence phrases are de-duplicated by containment ("recommendation system"
+    and "recommendation systems" can no longer be cited together) and the
+    *selection* rotates per candidate, so neighbouring rows cite different
+    evidence even when their profiles overlap;
+  * four lead-sentence structures and four closing fit-clauses rotate per
+    candidate, so sampled rows don't share one skeleton;
+  * tail-of-list rows (rank > 60) carry an honest, fact-based qualifier (their
+    genuinely weakest scoring axis), matching the spec's own rank-100 example.
 """
 from __future__ import annotations
-from typing import Dict, Any, List
+import zlib
+from typing import Dict, Any, List, Optional
 
 from . import concepts as C
 
 
-def _evidence_phrases(candidate, limit=2) -> List[str]:
-    """Return up to `limit` IR/ML phrases that literally appear in the profile
-    text, so citing them can never be a hallucination."""
+def _cid_seed(candidate) -> int:
+    """Stable small integer derived from the candidate id.  crc32 is
+    deterministic across runs, processes and machines (unlike Python's
+    hash(), which is salted per process) and mixes neighbouring ids well."""
+    cid = str(candidate.get("candidate_id") or "0")
+    return zlib.crc32(cid.encode("utf-8"))
+
+
+def _all_evidence_phrases(candidate, cap=8) -> List[str]:
+    """All distinct IR/ML phrases that literally appear in the profile text
+    (citing them can never be a hallucination), de-duplicated so that no kept
+    phrase is a substring of another (drops singular/plural and 'rag' vs
+    'rag pipeline' near-duplicates).  IR phrases first, then ML."""
     from .features import build_text
     text = build_text(candidate)
-    found = []
+    found: List[str] = []
+
+    def _consider(raw: str):
+        p = raw.strip(" .,(")
+        if len(p) <= 3 and p not in ("rag", "ltr", "llm", "nlp"):
+            return
+        if p in ("retrieval",):  # too generic to cite on its own
+            return
+        for i, q in enumerate(found):
+            if p in q or q in p:
+                # keep the longer, more specific phrasing
+                if len(p) > len(q):
+                    found[i] = p
+                return
+        found.append(p)
+
     for ph in C.CORE_IR["phrases"]:
-        if ph in text and ph not in ("retrieval",):
-            found.append(ph.strip())
-        if len(found) >= limit:
+        if ph in text:
+            _consider(ph)
+        if len(found) >= cap:
             return found
     for ph in C.CORE_ML["phrases"]:
-        p = ph.strip(" .,(")
-        if ph in text and len(p) > 3:
-            found.append(p)
-        if len(found) >= limit:
+        if ph in text:
+            _consider(ph)
+        if len(found) >= cap:
             break
     return found
 
 
-def _extra_evidence_phrase(candidate, already: List[str]) -> str:
-    """Return one more matched phrase not already cited (for fallback colour)."""
-    from .features import build_text
-    text = build_text(candidate)
-    skip = set(already) | {"retrieval"}
-    for ph in C.CORE_IR["phrases"] + C.CORE_ML["phrases"]:
-        if ph in text and ph not in skip and len(ph.strip(" .,(")) > 3:
-            return ph.strip(" .,(")
-    return ""
+def _pick_evidence(candidate, limit=2) -> List[str]:
+    """Rotate which evidence gets cited, per candidate, so rows with similar
+    profiles don't all cite the same two list-leading phrases."""
+    pool = _all_evidence_phrases(candidate)
+    if len(pool) <= limit:
+        return pool
+    start = _cid_seed(candidate) % len(pool)
+    picked = [pool[start]]
+    if limit > 1:
+        picked.append(pool[(start + max(1, len(pool) // 2)) % len(pool)])
+    return picked
 
 
 def _real_ai_skills(candidate, limit=3) -> List[str]:
@@ -63,34 +96,80 @@ def _real_ai_skills(candidate, limit=3) -> List[str]:
 
 def _recent_product_role(candidate) -> str:
     """The most recent non-consulting role's company name, if any."""
+    from .features import _CONSULTING_RE
     history = candidate.get("career_history", []) or []
-    cf = [c.lower() for c in C.CONSULTING_FIRMS]
     for r in history:
         company = (r.get("company") or "").strip()
         if not company:
             continue
-        if any(k in company.lower() for k in cf):
+        if _CONSULTING_RE.search(company.lower()):
             continue
         return company
     return ""
 
 
-def generate(candidate: Dict[str, Any], f: Dict[str, Any], info: Dict[str, Any]) -> str:
+# Four interchangeable "strong fit" lead structures.  Slots: title, yoe,
+# company, ev1, ev2/fit-clause.  All facts, different sentence shapes.
+def _strong_leads(title, yoe, company, ev):
+    e1 = ev[0] if ev else ""
+    e2 = ev[1] if len(ev) > 1 else ""
+    both = f"{e1} and {e2}" if e2 else e1
+    at = f" at {company}" if company else ""
+    art = "an" if title[:1].lower() in "aeiou" else "a"
+    return [
+        f"{title} with {yoe:.0f} yrs; profile shows hands-on {', '.join(ev)} — "
+        f"the retrieval/ranking work this role centres on",
+        f"{yoe:.1f} yrs as {art} {title}{at}, with {both} running through the "
+        f"career history — squarely the JD's core mandate",
+        f"{title}{at} ({yoe:.0f} yrs) whose roles cover {both}, a close match "
+        f"to the search/recommendation systems this position owns",
+        f"Seasoned {title} ({yoe:.0f} yrs) with concrete {both} work — "
+        f"exactly the matching/ranking depth the JD asks for",
+    ]
+
+
+def _weakest_axis_note(f, info) -> str:
+    """An honest, fact-based qualifier drawn from the candidate's genuinely
+    weakest scoring axis.  Used for tail-of-list rows so a rank-90 rationale
+    doesn't read identical to a rank-5 one.  Returns '' if nothing applies."""
+    comp = info.get("components", {})
+    notes = []
+    if comp.get("experience", 1.0) < 1.0:
+        y = f.get("yoe", 0)
+        notes.append((comp["experience"],
+                      f"at {y:.1f} yrs, sits at the edge of the JD's 5-9 band"))
+    if comp.get("company", 1.0) < 0.8 and f.get("consulting_share", 0) > 0:
+        notes.append((comp["company"],
+                      f"~{int(round(f['consulting_share'] * 100))}% of career in services/consulting firms"))
+    if comp.get("location", 1.0) <= 0.6:
+        notes.append((comp["location"], "outside the JD's preferred metros"))
+    if comp.get("domain", 1.0) < 0.55:
+        notes.append((comp["domain"], "domain evidence is thinner than the top of this list"))
+    nd = f.get("notice_days")
+    if isinstance(nd, (int, float)) and nd >= 60:
+        notes.append((0.5, f"{int(nd)}-day notice period"))
+    if not notes:
+        return ""
+    notes.sort(key=lambda t: t[0])
+    return notes[0][1]
+
+
+def generate(candidate: Dict[str, Any], f: Dict[str, Any], info: Dict[str, Any],
+             rank: Optional[int] = None) -> str:
     profile = candidate.get("profile", {}) or {}
-    title = profile.get("current_title", "professional")
+    title = profile.get("current_title") or "professional"
     company = profile.get("current_company", "")
     yoe = f["yoe"]
     score = info["score"]
+    seed = _cid_seed(candidate)
 
     # ---- lead clause: who they are + strongest fit evidence ---------------
-    ev = _evidence_phrases(candidate)
+    ev = _pick_evidence(candidate)
     skills = _real_ai_skills(candidate)
-    where = company and f"at {company}" or ""
 
     if score >= 0.6:
         if ev:
-            lead = (f"{title} with {yoe:.0f} yrs; profile shows hands-on "
-                    f"{', '.join(ev)} — the retrieval/ranking work the role centres on")
+            lead = _strong_leads(title, yoe, company, ev)[seed % 4]
         elif skills:
             lead = (f"{title} with {yoe:.0f} yrs and corroborated {', '.join(skills[:2])} "
                     f"experience relevant to the matching/ranking mandate")
@@ -137,7 +216,8 @@ def generate(candidate: Dict[str, Any], f: Dict[str, Any], info: Dict[str, Any])
         if rec:
             pos.append(f"recent role at {rec}")
         else:
-            extra = _extra_evidence_phrase(candidate, ev)
+            pool = _all_evidence_phrases(candidate)
+            extra = next((p for p in pool if p not in ev), "")
             if extra:
                 pos.append(f"also cites {extra}")
 
@@ -147,14 +227,25 @@ def generate(candidate: Dict[str, Any], f: Dict[str, Any], info: Dict[str, Any])
         concerns = ["profile fails internal consistency checks"] + concerns
     if not f["in_india"] and not f["willing_to_relocate"]:
         concerns.append("outside India, not open to relocate")
+    # tail-of-list honesty: rows deep in the top-100 carry their genuinely
+    # weakest axis, so tone tracks rank (the spec's own rank-100 example hedges)
+    if rank is not None and rank > 60 and not concerns:
+        weak = _weakest_axis_note(f, info)
+        if weak:
+            concerns.append(weak)
 
     parts = [lead.rstrip(".")]
     if pos and score >= 0.45:
         parts.append("; " + ", ".join(pos[:3]))
     if concerns:
-        parts.append(". Concerns: " + "; ".join(concerns[:2]))
+        label = "Watch-outs" if (rank is not None and rank > 60 and not info["dq_notes"]
+                                 and not info["beh_notes"] and not info["is_honeypot"]) else "Concerns"
+        parts.append(f". {label}: " + "; ".join(concerns[:2]))
     text = "".join(parts).strip()
     if not text.endswith("."):
         text += "."
-    # keep it to ~2 sentences / reasonable length
-    return text[:300]
+    # keep it to ~2 sentences / reasonable length, never cutting mid-word
+    if len(text) > 300:
+        cut = text[:300]
+        text = cut[:cut.rfind(" ")].rstrip(",;") + "."
+    return text

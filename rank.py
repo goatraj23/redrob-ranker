@@ -23,11 +23,14 @@ runs the full 100K pool in ~3-4 s and stays well under the Stage-3 limits
 from __future__ import annotations
 import argparse
 import csv
+import gzip
 import heapq
 import json
 import multiprocessing as mp
 import os
+import shutil
 import sys
+import tempfile
 import time
 
 from redrob_ranker import features as F
@@ -36,6 +39,25 @@ from redrob_ranker import reasoning
 from redrob_ranker import prefilter
 
 KEEP = 200  # retain a margin above 100 so reasoning/tie handling has headroom
+
+
+def _is_gzip(path: str) -> bool:
+    with open(path, "rb") as fh:
+        return fh.read(2) == b"\x1f\x8b"
+
+
+def _ensure_plain_jsonl(path: str):
+    """The byte-range workers need a seekable plain-text file.  If the input is
+    gzipped (the official bundle ships candidates.jsonl.gz), decompress it once
+    to a temp file (~465 MB, well inside the 5 GB disk budget) and rank that.
+    Returns (plain_path, cleanup_path_or_None)."""
+    if not _is_gzip(path):
+        return path, None
+    tmp = tempfile.NamedTemporaryFile(prefix="candidates_", suffix=".jsonl",
+                                      delete=False)
+    with gzip.open(path, "rb") as src, tmp:
+        shutil.copyfileobj(src, tmp, length=16 * 1024 * 1024)
+    return tmp.name, tmp.name
 
 
 def _chunk_offsets(path: str, n: int):
@@ -55,8 +77,16 @@ def _worker(args):
     prefiltered = 0
     with open(path, "r", encoding="utf-8") as fh:
         if start > 0:
+            # A line that STARTS exactly at `start` belongs to this worker (the
+            # previous worker stops at tell() >= end without reading it), so we
+            # may only discard a partial line.  Peek at the byte before `start`:
+            # if it is a newline, `start` is a line start — keep it.
+            with open(path, "rb") as bf:
+                bf.seek(start - 1)
+                at_line_start = bf.read(1) == b"\n"
             fh.seek(start)
-            fh.readline()  # drop partial line
+            if not at_line_start:
+                fh.readline()  # drop partial line
         while True:
             pos = fh.tell()
             if pos >= end:
@@ -96,6 +126,15 @@ def run(candidates_path: str, out_path: str, weights=None, n_workers=None) -> No
         n_workers = max(1, (os.cpu_count() or 4))
     t0 = time.time()
 
+    candidates_path, cleanup = _ensure_plain_jsonl(candidates_path)
+    try:
+        _run_ranking(candidates_path, out_path, weights, n_workers, t0)
+    finally:
+        if cleanup:
+            os.unlink(cleanup)
+
+
+def _run_ranking(candidates_path: str, out_path: str, weights, n_workers, t0) -> None:
     chunks = _chunk_offsets(candidates_path, n_workers)
     args_list = [(candidates_path, s, e, KEEP, weights) for s, e in chunks]
 
@@ -127,7 +166,7 @@ def run(candidates_path: str, out_path: str, weights=None, n_workers=None) -> No
         w = csv.writer(fh, quoting=csv.QUOTE_MINIMAL)
         w.writerow(["candidate_id", "rank", "score", "reasoning"])
         for rank, (printed, cid, cand, feats, info) in enumerate(top, start=1):
-            txt = reasoning.generate(cand, feats, info)
+            txt = reasoning.generate(cand, feats, info, rank=rank)
             w.writerow([cid, rank, f"{printed:.4f}", txt])
 
     dt = time.time() - t0

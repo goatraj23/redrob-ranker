@@ -66,8 +66,11 @@ methodology_summary: |
   career, vision/speech/robotics-only, research-only, recent-framework-only,
   title-chasing), a behavioural-availability multiplier (recency, recruiter
   response rate, open-to-work, notice period), and a honeypot/consistency gate
-  that forces internally-impossible profiles to the bottom (0% honeypots in
-  our top 100). Domain fit is read from career-history TEXT, not skill tags,
+  that forces impossible profiles to the bottom — both internally impossible
+  (contradictory dates/durations/skills) and world-impossible (roles starting
+  before the employer company was founded, the brief's canonical honeypot);
+  0% honeypots of either class in our top 100. Domain fit is read from
+  career-history TEXT, not skill tags,
   so a "Marketing Manager" stuffed with AI keywords loses to a product-company
   engineer who actually built a recommendation system. Weights are hand-set
   priors in scoring.py; the ranker is deterministic and uses no ML model.
