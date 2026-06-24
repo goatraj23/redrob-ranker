@@ -4,13 +4,13 @@
 team_name: "Aether"
 
 primary_contact:
-  name: "TODO-your-name"
-  email: "mohithlochan56@gmail.com"
-  phone: "TODO-+91-XXXXXXXXXX"
+  name: "Viraj Rane"
+  email: "littleranlings@gmail.com"
+  phone: "+91 7045951596"
 
 team_members:
-  - name: "TODO-your-name"
-    email: "mohithlochan56@gmail.com"
+  - name: "Viraj Rane"
+    email: "littleranlings@gmail.com"
     role: "ML / Backend Engineer"
 
 # ============================================================================
